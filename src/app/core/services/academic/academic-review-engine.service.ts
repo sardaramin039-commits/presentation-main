@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { FactCheckService } from '../evidence/fact-check.service';
 import { CitationGeneratorService } from './citation-generator.service';
 
@@ -8,14 +8,17 @@ export interface AcademicReviewReport {
   warnings: string[];
 }
 
+interface ReviewableSlide {
+  bullets?: string[];
+  citation?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AcademicReviewEngineService {
-  constructor(
-    private factChecker: FactCheckService,
-    private citationGen: CitationGeneratorService
-  ) {}
+  private readonly factChecker = inject(FactCheckService);
+  private readonly citationGen = inject(CitationGeneratorService);
 
-  evaluateContent(slides: any[]): AcademicReviewReport {
+  evaluateContent(slides: ReviewableSlide[]): AcademicReviewReport {
     let totalScore = 0;
     const allWarnings: string[] = [];
 

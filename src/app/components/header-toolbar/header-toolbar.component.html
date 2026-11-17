@@ -1,24 +1,33 @@
 ﻿<header class="bg-slate-900 text-white shadow-md w-full z-50">
-  <div class="container mx-auto px-4 py-3 flex justify-between items-center" dir="rtl">
-    <div class="flex items-center gap-3">
-      <!-- ئایکۆنی کڵاوی ئەکادیمی -->
-      <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
-      </svg>
-      <h1 class="text-xl font-bold font-kurdish tracking-wide">کتێبخانەی مام <span class="text-slate-400 text-sm font-normal mr-2">| سەکۆی پرێزێنتەیشنی ئەکادیمی</span></h1>
+  <div class="container mx-auto px-4 py-3 flex flex-wrap gap-4 justify-between items-center" dir="rtl">
+    <div class="flex items-center gap-3 min-w-0">
+      <svg class="w-8 h-8 text-blue-400 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+      <h1 class="text-xl font-bold font-kurdish tracking-wide truncate">کتێبخانەی مام <span class="text-slate-400 text-sm font-normal mr-2">| سەکۆی پرێزێنتەیشنی ئەکادیمی</span></h1>
     </div>
-    
-    <!-- دوگمەکانی کارکردن -->
-    <div class="flex items-center gap-4 font-kurdish text-sm">
-      <button class="flex items-center gap-2 text-slate-300 hover:text-white transition-colors px-3 py-2 rounded hover:bg-slate-800">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-        پاشەکەوتکردن
-      </button>
-      <button class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors shadow-sm font-medium">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-        هەناردەکردن (PPTX)
-      </button>
+    <div class="flex items-center gap-3 font-kurdish text-sm">
+      @if (authService.isLoading()) {
+        <span class="text-slate-400 px-3 py-2" role="status">پشکنینی هەژمار...</span>
+      } @else if (authService.isAuthenticated()) {
+        <div class="flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-1.5">
+          @if (authService.currentUser()?.photoURL; as photoUrl) {
+            <img [src]="photoUrl" alt="وێنەی بەکارهێنەر" class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer">
+          } @else {
+            <span class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold" aria-hidden="true">{{ (authService.currentUser()?.displayName || 'ب').charAt(0) }}</span>
+          }
+          <span class="hidden sm:inline text-slate-200 max-w-32 truncate">{{ authService.currentUser()?.displayName || authService.currentUser()?.email || 'بەکارهێنەر' }}</span>
+          <button type="button" (click)="signOut()" class="text-slate-300 hover:text-white px-2 py-1 rounded-lg hover:bg-slate-700 transition" aria-label="چوونەدەرەوە">چوونەدەرەوە</button>
+        </div>
+      } @else {
+        <button type="button" (click)="signIn()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition shadow-sm font-medium">
+          <svg class="w-5 h-5" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 12.27c0-.72-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 01-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.26z"></path><path fill="currentColor" d="M12 21.96c2.63 0 4.84-.87 6.45-2.43l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.53A9.75 9.75 0 0012 21.96z"></path><path fill="currentColor" d="M6.54 13.97a5.87 5.87 0 010-3.75V7.69H3.3a9.96 9.96 0 000 8.82l3.24-2.54z"></path><path fill="currentColor" d="M12 6.19c1.43 0 2.72.49 3.73 1.46l2.8-2.8C16.84 3.18 14.63 2.04 12 2.04a9.75 9.75 0 00-8.7 5.65l3.24 2.53C7.31 7.91 9.46 6.19 12 6.19z"></path></svg>
+          چوونەژوورەوە بە Google
+        </button>
+      }
+      <button type="button" class="hidden sm:flex items-center gap-2 text-slate-300 hover:text-white transition-colors px-3 py-2 rounded hover:bg-slate-800">پاشەکەوتکردن</button>
+      <button type="button" (click)="onExportPPTX()" class="hidden sm:flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition shadow-sm font-medium">هەناردەکردن (PPTX)</button>
     </div>
   </div>
+  @if (authError) {
+    <div class="container mx-auto px-4 pb-2 text-xs text-red-300" role="alert">{{ authError }}</div>
+  }
 </header>

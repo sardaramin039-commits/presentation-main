@@ -32,7 +32,7 @@ function sanitizeErrorMessage(error: unknown): string {
     if (msg.includes('GEMINI_API_KEY') || msg.includes('apiKey') || msg.includes('bearer')) {
       return 'کێشەیەک لە ڕێکخستنی کلیلەکانی ژیریی دەستکرددا هەیە.';
     }
-    return msg;
+    return 'هەڵەیەک لە خزمەتگوزاریی ژیریی دەستکرد ڕوویدا. تکایە دووبارە هەوڵ بدەرەوە.';
   }
   return 'هەڵەیەکی نەزانراو لە ڕاژەکار ڕوویدا.';
 }
@@ -103,11 +103,7 @@ async function generateContentWithRetry(params: GenerateParams): Promise<Generat
     }
   }
 
-  let friendlyMsg = 'سێرڤەری ژیریی دەستکرد لە ئێستادا وەڵام ناداتەوە.';
-  if (lastError?.message) {
-    friendlyMsg += ` (${lastError.message})`;
-  }
-  throw new Error(friendlyMsg);
+  throw new Error(lastError ? 'سێرڤەری ژیریی دەستکرد لە ئێستادا وەڵام ناداتەوە.' : 'وەڵامێکی دروست لە ژیریی دەستکرد وەرنەگیرا.');
 }
 
 /**
@@ -235,10 +231,13 @@ ${sourcesInstruction}
 
     const data = JSON.parse(response.text.trim());
     return res.json({
-      title: data.title || topic,
-      topic,
-      academicLevel: level,
-      slides: data.slides || []
+      success: true,
+      data: {
+        title: data.title || topic,
+        topic,
+        academicLevel: level,
+        slides: data.slides || []
+      }
     });
   } catch (error: unknown) {
     console.error('Error generating presentation:', error);

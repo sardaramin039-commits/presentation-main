@@ -1,23 +1,24 @@
-﻿import { Injectable } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, from, map, switchMap } from 'rxjs';
 import { PresentationDesignEngineService, PresentationData } from '../design/presentation-design-engine.service';
 import { AcademicReviewEngineService } from '../academic/academic-review-engine.service';
+import { AuthService } from '../workspace/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class PresentationGeneratorService {
-  constructor(
-    private http: HttpClient,
-    private designEngine: PresentationDesignEngineService,
-    private academicReview: AcademicReviewEngineService
-  ) {}
+  private readonly http = inject(HttpClient);
+  private readonly designEngine = inject(PresentationDesignEngineService);
+  private readonly academicReview = inject(AcademicReviewEngineService);
+  private readonly authService = inject(AuthService);
 
-  generate(topic: string, academicLevel: string = 'university'): Observable<PresentationData> {
+  generate(topic: string, academicLevel = 'bachelor'): Observable<PresentationData> {
     // گۆڕینی بەستەرەکە بۆ /api/generate-presentation
-    return this.http.post<{success: boolean, data: PresentationData}>('/api/generate-presentation', {
-      topic,
-      academicLevel
-    }).pipe(
+    return from(this.authService.getFirebaseIdToken()).pipe(
+      switchMap(token => this.http.post<{success: boolean, data: PresentationData}>('/api/generate-presentation', {
+        topic,
+        academicLevel
+      }, token ? { headers: { Authorization: `Bearer ${token}` } } : {})),
       map(response => {
         if (!response.success || !response.data) {
           throw new Error('کێشە لە وەرگرتنی داتای پرێزێنتەیشنەکەدا هەیە');

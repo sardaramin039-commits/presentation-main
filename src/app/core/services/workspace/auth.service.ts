@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { User } from 'firebase/auth';
 import { UserProfile, TrialStatus } from '../../models/auth.model';
 import { SecureStorageUtils } from '../../utils/secure-storage.utils';
-import { initAuth, googleSignIn, logoutUser } from './firebase-auth-client';
+import { initAuth, googleSignIn, logoutUser, getFirebaseIdToken } from './firebase-auth-client';
 import { STORAGE_KEYS, TRIAL_CONFIG } from '../../constants/app.constants';
 
 @Injectable({
@@ -28,6 +28,7 @@ export class AuthService {
   private readonly authFailureCallbacks: (() => void)[] = [];
   private rawFirebaseUser: User | null = null;
   private currentAccessToken: string | null = null;
+  private currentFirebaseIdToken: string | null = null;
 
   constructor() {
     if (this.isBrowser) {
@@ -62,6 +63,7 @@ export class AuthService {
         (user: User, token: string) => {
           this.rawFirebaseUser = user;
           this.currentAccessToken = token;
+          this.currentFirebaseIdToken = token;
 
           const profile: UserProfile = {
             uid: user.uid,
@@ -83,6 +85,7 @@ export class AuthService {
         () => {
           this.rawFirebaseUser = null;
           this.currentAccessToken = null;
+          this.currentFirebaseIdToken = null;
           this.currentUserSignal.set(null);
           this.loadingSignal.set(false);
           SecureStorageUtils.clearSecureItem(AuthService.AUTH_STORAGE_KEY);
@@ -113,6 +116,7 @@ export class AuthService {
 
       this.rawFirebaseUser = result.user;
       this.currentAccessToken = result.accessToken;
+      this.currentFirebaseIdToken = result.idToken;
 
       const profile: UserProfile = {
         uid: result.user.uid,
@@ -158,6 +162,7 @@ export class AuthService {
     SecureStorageUtils.clearSecureItem(AuthService.AUTH_STORAGE_KEY);
     this.rawFirebaseUser = null;
     this.currentAccessToken = null;
+    this.currentFirebaseIdToken = null;
     this.currentUserSignal.set(null);
 
     for (const cb of this.authFailureCallbacks) {
@@ -192,6 +197,12 @@ export class AuthService {
    */
   getAccessToken(): string | null {
     return this.currentAccessToken;
+  }
+
+  async getFirebaseIdToken(): Promise<string | null> {
+    if (this.currentFirebaseIdToken) return this.currentFirebaseIdToken;
+    this.currentFirebaseIdToken = await getFirebaseIdToken();
+    return this.currentFirebaseIdToken;
   }
 
   /**

@@ -1,57 +1,38 @@
 ﻿<div class="slide-canvas-container bg-slate-50 p-6 flex justify-center items-center h-full relative font-kurdish">
-  <!-- ناوچەی پیشاندانی پرێزێنتەیشنەکە -->
   <div class="presentation-board bg-white shadow-2xl rounded-xl w-full max-w-4xl aspect-video relative overflow-hidden flex flex-col border border-slate-200">
-    
-    <ng-container *ngIf="presentationData && currentSlide; else emptyState">
-      
-      <!-- بەشی جوڵاو (ئەنیمەیشنەکە تەنها لەسەر ئەم بەشە جێبەجێ دەکرێت) -->
-      <div class="flex-grow flex flex-col h-full" [ngClass]="animationState">
-        <!-- سەردێڕی سلایدەکە -->
+    @if (presentationData && currentSlide; as slide) {
+      <div class="flex-grow flex flex-col h-full" [class.slide-transition]="animationState === 'slide-transition'">
         <div class="slide-header bg-slate-900 text-white p-8 text-center border-b-4 border-blue-600 shadow-sm">
-          <h1 class="text-3xl font-bold tracking-wide leading-tight">{{ currentSlide.title }}</h1>
+          <h1 class="text-3xl font-bold tracking-wide leading-tight">{{ slide.title }}</h1>
         </div>
-
-        <!-- ناوەڕۆکی سلایدەکە -->
         <div class="slide-content p-10 flex-grow flex flex-col justify-center bg-slate-50/50">
           <ul class="list-disc list-inside text-slate-800 text-2xl space-y-6 leading-relaxed" dir="rtl">
-            <li *ngFor="let bullet of currentSlide.bullets" class="pl-2">{{ bullet }}</li>
+            @for (bullet of slide.bullets; track $index) {
+              <li class="pl-2">{{ bullet }}</li>
+            }
           </ul>
-          
-          <!-- شوێنی نیشاندانی چارت یان وێنە ئەگەر هەبێت -->
-          <div *ngIf="currentSlide.visualType !== 'text'" class="visual-placeholder mt-10 p-6 bg-white shadow-inner border border-slate-200 rounded-lg text-center text-slate-500">
-            [لێرەدا پێکهاتەی بینراو لە جۆری <span class="font-bold text-blue-600">{{ currentSlide.visualType }}</span> نیشان دەدرێت]
-          </div>
+          @if (slide.visualType !== 'text') {
+            <div class="visual-placeholder mt-10 p-6 bg-white shadow-inner border border-slate-200 rounded-lg text-center text-slate-500">
+              لێرەدا پێکهاتەی بینراو لە جۆری <span class="font-bold text-blue-600">{{ slide.visualType }}</span> نیشان دەدرێت
+            </div>
+          }
         </div>
-
-        <!-- ژێرەوەی سلاید (سەرچاوەکان و ژمارەی سلاید) -->
         <div class="slide-footer bg-white p-5 border-t border-slate-200 text-sm text-slate-600 flex justify-between items-center" dir="rtl">
-          <span class="flex-1"><strong>سەرچاوە:</strong> <span class="text-blue-700 font-medium">{{ currentSlide.citation }}</span></span>
+          <span class="flex-1"><strong>سەرچاوە:</strong> <span class="text-blue-700 font-medium">{{ slide.citation }}</span></span>
           <span class="font-bold text-slate-500 bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full shadow-sm">سلایدی {{ currentIndex + 1 }} لە {{ presentationData.slides.length }}</span>
         </div>
       </div>
-
-      <!-- دوگمەکانی کۆنتڕۆڵکردن (پێشوو / داهاتوو) -->
-      <button (click)="prevSlide()" *ngIf="currentIndex < presentationData.slides.length - 1" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-blue-600 hover:text-white text-slate-800 rounded-full p-3 shadow-lg transition-all backdrop-blur-sm border border-slate-200 z-10 focus:outline-none">
-        <!-- ئایکۆنی داهاتوو (بۆ کوردی پێچەوانەیە، بۆیە لای چەپ داهاتووە) -->
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+      <button type="button" (click)="prevSlide()" [disabled]="currentIndex === 0" aria-label="سلایدی پێشوو" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-blue-600 hover:text-white disabled:opacity-30 text-slate-800 rounded-full p-3 shadow-lg transition-all backdrop-blur-sm border border-slate-200 z-10 focus:outline-none">
+        <svg class="w-7 h-7" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
       </button>
-      
-      <button (click)="nextSlide()" *ngIf="currentIndex > 0" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-blue-600 hover:text-white text-slate-800 rounded-full p-3 shadow-lg transition-all backdrop-blur-sm border border-slate-200 z-10 focus:outline-none">
-        <!-- ئایکۆنی پێشوو -->
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+      <button type="button" (click)="nextSlide()" [disabled]="currentIndex === presentationData.slides.length - 1" aria-label="سلایدی داهاتوو" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-blue-600 hover:text-white disabled:opacity-30 text-slate-800 rounded-full p-3 shadow-lg transition-all backdrop-blur-sm border border-slate-200 z-10 focus:outline-none">
+        <svg class="w-7 h-7" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
       </button>
-
-    </ng-container>
-
-    <!-- کاتێک هیچ پرێزێنتەیشنێک بوونی نییە -->
-    <ng-template #emptyState>
+    } @else {
       <div class="flex-grow flex flex-col justify-center items-center text-slate-400">
-        <svg class="w-24 h-24 mb-6 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-        </svg>
+        <svg class="w-24 h-24 mb-6 text-slate-200" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
         <p class="text-2xl font-light text-slate-500">تکایە بابەتێک هەڵبژێرە بۆ دەستپێکردن</p>
       </div>
-    </ng-template>
-
+    }
   </div>
 </div>

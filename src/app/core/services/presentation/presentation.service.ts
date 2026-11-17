@@ -390,7 +390,7 @@ export class PresentationService {
 
     if (typeof window !== 'undefined' && presentationId && summaryText) {
       try {
-        localStorage.setItem(`let myData = localStorage.getItem('user-data');}`, summaryText);
+        localStorage.setItem(`${STORAGE_KEYS.SUMMARY_PREFIX}${presentationId}`, summaryText);
       } catch (e) {
         console.error('Failed to save summary to localStorage:', e);
       }

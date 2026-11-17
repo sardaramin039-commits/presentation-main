@@ -10,9 +10,9 @@ import {
 } from 'firebase/auth';
 import firebaseConfig from '../../../../../firebase-applet-config.json';
 
-// In-memory cache for Google OAuth token
+// Keep Google OAuth and Firebase ID tokens separate: they serve different APIs.
 let cachedAccessToken: string | null = null;
-let isSigningIn = false;
+let cachedFirebaseIdToken: string | null = null;
 
 /**
  * Safely retrieves or initializes the Firebase Auth instance
@@ -47,14 +47,16 @@ export const initAuth = (
 
   return onAuthStateChanged(currentAuth, async (user: User | null) => {
     if (user) {
-      if (cachedAccessToken) {
-        if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
-      } else if (!isSigningIn) {
-        cachedAccessToken = null;
+      try {
+        cachedFirebaseIdToken = await user.getIdToken();
+        if (onAuthSuccess && cachedFirebaseIdToken) onAuthSuccess(user, cachedFirebaseIdToken);
+      } catch (error) {
+        console.warn('Failed to refresh Firebase ID token:', error);
         if (onAuthFailure) onAuthFailure();
       }
     } else {
       cachedAccessToken = null;
+      cachedFirebaseIdToken = null;
       if (onAuthFailure) onAuthFailure();
     }
   });
@@ -63,7 +65,7 @@ export const initAuth = (
 /**
  * Executes a popup-based login to Google and gains Slides/Drive permission scopes
  */
-export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
+export const googleSignIn = async (): Promise<{ user: User; accessToken: string; idToken: string } | null> => {
   const currentAuth = auth || getSafeAuth();
   if (!currentAuth) {
     throw new Error('Firebase Auth is not available in current environment.');
@@ -74,19 +76,17 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
   provider.addScope('https://www.googleapis.com/auth/drive.file');
 
   try {
-    isSigningIn = true;
     const result = await signInWithPopup(currentAuth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (!credential?.accessToken) {
       throw new Error('Failed to retrieve access token from Google sign in.');
     }
     cachedAccessToken = credential.accessToken;
-    return { user: result.user, accessToken: cachedAccessToken };
+    cachedFirebaseIdToken = await result.user.getIdToken(true);
+    return { user: result.user, accessToken: cachedAccessToken, idToken: cachedFirebaseIdToken };
   } catch (error: unknown) {
     console.error('Kurdish App Google Sign in error:', error);
     throw error;
-  } finally {
-    isSigningIn = false;
   }
 };
 
@@ -95,6 +95,15 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
  */
 export const getAccessToken = async (): Promise<string | null> => {
   return cachedAccessToken;
+};
+
+export const getFirebaseIdToken = async (): Promise<string | null> => {
+  if (cachedFirebaseIdToken) return cachedFirebaseIdToken;
+  const currentAuth = auth || getSafeAuth();
+  const user = currentAuth?.currentUser;
+  if (!user) return null;
+  cachedFirebaseIdToken = await user.getIdToken();
+  return cachedFirebaseIdToken;
 };
 
 /**
@@ -106,4 +115,5 @@ export const logoutUser = async (): Promise<void> => {
     await signOut(currentAuth);
   }
   cachedAccessToken = null;
+  cachedFirebaseIdToken = null;
 };
