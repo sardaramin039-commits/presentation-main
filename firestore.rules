@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // فەنکشنی یارمەتیدەر بۆ پشکنینی چوونەژوورەوە و خاوەندارێتی
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ١. پاراستنی پڕۆفایلی بەکارهێنەران
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ٢. پاراستنی ژینگەی کارکردن و پڕۆژەکان (Project Workspaces)
+    match /workspaces/{workspaceId} {
+      allow read, update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() 
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.keys().hasAll(['title', 'ownerId', 'createdAt']);
+    }
+
+    // ٣. پاراستنی سلایدەکان و مێژووی گۆڕانکارییەکان (Presentations & History)
+    match /presentations/{presentationId} {
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // ٤. داخستنی هەموو ڕێڕەوێکی تر بە شێوەی بنەڕەتی
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

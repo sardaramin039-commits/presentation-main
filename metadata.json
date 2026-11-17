@@ -1,0 +1,6 @@
+{
+  "name": "Kurdish AI Presentation Creator",
+  "description": "An interactive, professional AI-powered tool to design and build presentation slide decks, speaker notes, and visual suggestions in Kurdish, customized for School, Undergraduate, and Postgraduate levels.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

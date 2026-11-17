@@ -1,0 +1,155 @@
+@if (currentView() === 'dashboard') {
+  <app-mam-library-dashboard
+    (openEditor)="onOpenEditor($event)" />
+} @else {
+  <div class="app-workspace-shell flex flex-col h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans" [attr.dir]="currentDir()">
+    
+    <!-- ١. شریتی سەرەوە (Header & Export Actions) -->
+    <app-header-toolbar
+      [activeTab]="activeRightTab()"
+      (tabToggle)="toggleRightTab($event)"
+      (openModal)="activeModal.set($event)"
+      (navigateToDashboard)="navigateToDashboard()" />
+
+    <!-- ٢. ناوچەی کارکردنی سەرەکی (Main Editor Area) -->
+    
+    <!-- ٢.١ شاشەی گەورەی کۆمپیوتەر (Desktop View: lg و سەرووتر) -->
+    <main class="hidden lg:flex flex-1 overflow-hidden">
+      <!-- لای چەپ/ڕاست: کۆنترۆڵەکان و لیستی سلایدەکان -->
+      <app-sidebar-controls class="w-80 shrink-0 h-full overflow-y-auto" />
+      <app-slide-thumbnails class="w-64 shrink-0 h-full border-x border-slate-800 overflow-y-auto" />
+
+      <!-- ناوەڕاست: تەختەی پیشاندان و دەستکاریکردنی سلاید -->
+      <section class="flex-1 flex flex-col overflow-hidden bg-slate-900">
+        <app-slide-canvas class="flex-1 overflow-auto" />
+      </section>
+
+      <!-- پانێڵی تایبەتمەندییەکان (پێداچوونەوە و سەرچاوەکان) -->
+      @if (activeRightTab() === 'review') {
+        <aside class="w-96 border-s border-slate-800 overflow-y-auto bg-slate-900/95 shrink-0">
+          <app-academic-review-panel />
+        </aside>
+      }
+
+      @if (activeRightTab() === 'research') {
+        <aside class="w-96 border-s border-slate-800 overflow-y-auto bg-slate-900/95 shrink-0">
+          <app-research-sources-panel />
+        </aside>
+      }
+    </main>
+
+    <!-- ٢.٢ شاشەی مۆبایل و تابلێت (Mobile & Tablet View: کەمتر لە lg) -->
+    <main class="flex flex-col lg:hidden flex-1 overflow-hidden relative pb-16">
+      
+      <!-- دۆخی ١: تەختەی سلایدەکان (Canvas View) -->
+      @if (activeMobileView() === 'canvas') {
+        <div class="flex-1 flex flex-col overflow-hidden">
+          <!-- تەختەی گەورەی سلاید -->
+          <section class="flex-1 overflow-auto bg-slate-900 flex flex-col">
+            <app-slide-canvas class="flex-1 w-full" />
+          </section>
+
+          <!-- شریتی ئاسۆیی خلیسکێنەری ڕیزبەندی سلایدەکان لە خوارەوەی سلایدەکە -->
+          <div class="h-32 border-t border-slate-800 bg-slate-950/90 shrink-0 overflow-x-auto">
+            <app-slide-thumbnails class="w-full h-full block" />
+          </div>
+        </div>
+      }
+
+      <!-- دۆخی ٢: مەرجەکانی پێشکەشکردن (Settings View) -->
+      @if (activeMobileView() === 'settings') {
+        <div class="flex-1 overflow-y-auto bg-slate-900 p-2">
+          <app-sidebar-controls class="w-full block" />
+        </div>
+      }
+
+      <!-- دۆخی ٣: پانێڵی پشکنینی ئەکادیمی و سەرچاوەکان (Panels View) -->
+      @if (activeMobileView() === 'panels') {
+        <div class="flex-1 flex flex-col overflow-hidden bg-slate-900">
+          <!-- Switcher between Research and Review on mobile -->
+          <div class="flex items-center justify-around border-b border-slate-800 p-2 bg-slate-950/80 shrink-0">
+            <button type="button" 
+              (click)="toggleRightTab('research')"
+              [class.bg-indigo-600]="activeRightTab() === 'research'"
+              [class.text-white]="activeRightTab() === 'research'"
+              [class.text-slate-400]="activeRightTab() !== 'research'"
+              class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+              <mat-icon class="text-sm">menu_book</mat-icon>
+              <span>سەرچاوەکان</span>
+            </button>
+            <button type="button" 
+              (click)="toggleRightTab('review')"
+              [class.bg-indigo-600]="activeRightTab() === 'review'"
+              [class.text-white]="activeRightTab() === 'review'"
+              [class.text-slate-400]="activeRightTab() !== 'review'"
+              class="px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+              <mat-icon class="text-sm">verified</mat-icon>
+              <span>پێداچوونەوە</span>
+            </button>
+          </div>
+
+          <!-- Panel Content -->
+          <div class="flex-1 overflow-y-auto p-2">
+            @if (activeRightTab() === 'research') {
+              <app-research-sources-panel class="w-full block" />
+            } @else {
+              <app-academic-review-panel class="w-full block" />
+            }
+          </div>
+        </div>
+      }
+
+      <!-- شریتی تابی خوارەوەی مۆبایل (Mobile Bottom Navigation Bar) -->
+      <nav aria-label="Mobile Navigation" class="fixed bottom-0 left-0 right-0 h-16 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 z-40 px-4 flex items-center justify-around pb-safe">
+        <button 
+          type="button"
+          (click)="selectMobileView('canvas')"
+          [class.text-indigo-400]="activeMobileView() === 'canvas'"
+          [class.text-slate-500]="activeMobileView() !== 'canvas'"
+          class="flex flex-col items-center justify-center gap-1 flex-1 py-1 transition-colors">
+          <div 
+            [class.bg-indigo-500/20]="activeMobileView() === 'canvas'"
+            class="p-1.5 rounded-xl transition-all">
+            <mat-icon class="text-lg">slideshow</mat-icon>
+          </div>
+          <span class="text-[10px] font-bold">تەختەی سلاید</span>
+        </button>
+
+        <button 
+          type="button"
+          (click)="selectMobileView('settings')"
+          [class.text-indigo-400]="activeMobileView() === 'settings'"
+          [class.text-slate-500]="activeMobileView() !== 'settings'"
+          class="flex flex-col items-center justify-center gap-1 flex-1 py-1 transition-colors">
+          <div 
+            [class.bg-indigo-500/20]="activeMobileView() === 'settings'"
+            class="p-1.5 rounded-xl transition-all">
+            <mat-icon class="text-lg">tune</mat-icon>
+          </div>
+          <span class="text-[10px] font-bold">مەرجەکانی سیمینار</span>
+        </button>
+
+        <button 
+          type="button"
+          (click)="selectMobileView('panels')"
+          [class.text-indigo-400]="activeMobileView() === 'panels'"
+          [class.text-slate-500]="activeMobileView() !== 'panels'"
+          class="flex flex-col items-center justify-center gap-1 flex-1 py-1 transition-colors">
+          <div 
+            [class.bg-indigo-500/20]="activeMobileView() === 'panels'"
+            class="p-1.5 rounded-xl transition-all">
+            <mat-icon class="text-lg">fact_check</mat-icon>
+          </div>
+          <span class="text-[10px] font-bold">پشکنین و سەرچاوە</span>
+        </button>
+      </nav>
+    </main>
+
+    <!-- ٣. پەنجەرە خولاوەکان (Modals) -->
+    @if (activeModal()) {
+      <app-presentation-modals
+        [modalType]="activeModal()"
+        (closeModal)="activeModal.set(null)" />
+    }
+  </div>
+}

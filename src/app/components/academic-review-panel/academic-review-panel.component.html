@@ -1,0 +1,129 @@
+<div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm flex flex-col gap-5 font-sans">
+  
+  <!-- Panel Header -->
+  <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+    <div class="flex items-center gap-2">
+      <div class="bg-indigo-50 p-2 rounded-xl text-indigo-700">
+        <mat-icon class="text-base">verified</mat-icon>
+      </div>
+      <div>
+        <h3 class="text-sm font-black text-slate-800">پێداچوونەوەی ئەکادیمی و کوالێتی</h3>
+        <p class="text-[11px] text-slate-500">هەڵسەنگاندنی سەرپەرشتیار، ڕەزامەندی و وەشانەکانی پڕۆژە</p>
+      </div>
+    </div>
+
+    <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black px-2.5 py-1 rounded-full">
+      کوالێتی: ستاندارد
+    </span>
+  </div>
+
+  <!-- Workflow Steps (قۆناغەکانی پێداچوونەوە) -->
+  @if (workspaceService.activeProject(); as project) {
+    <div class="flex flex-col gap-2.5">
+      <h4 class="text-xs font-black text-slate-700 flex items-center gap-1.5">
+        <mat-icon class="text-xs text-indigo-600">checklist</mat-icon>
+        <span>قۆناغەکانی پەسەندکردنی پڕۆژە</span>
+      </h4>
+
+      <div class="flex flex-col gap-2">
+        @for (step of project.workflowSteps; track step.stepId) {
+          <div class="p-3 rounded-xl border border-slate-150 bg-slate-50/60 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800">{{ step.stageName }}</span>
+              <span [class]="getStatusClass(step.status)" class="text-[10px] font-black px-2 py-0.5 rounded-full">
+                {{ getStatusLabel(step.status) }}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500">{{ step.comments || 'هیچ سەرنجێک تۆمار نەکراوە.' }}</p>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2 mt-1 pt-1.5 border-t border-slate-200/60">
+              <button (click)="updateStep(step.stepId, 'approved')"
+                class="text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 px-2 py-0.5 rounded cursor-pointer">
+                پەسەندکردن ✓
+              </button>
+              <button (click)="updateStep(step.stepId, 'revision_requested')"
+                class="text-[10px] font-bold text-amber-700 hover:bg-amber-100 px-2 py-0.5 rounded cursor-pointer">
+                داواکردنی چاکسازی ↺
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Academic Comments (سەرنجی سەرپەرشتیار) -->
+    <div class="flex flex-col gap-2.5 pt-2 border-t border-slate-150">
+      <h4 class="text-xs font-black text-slate-700 flex items-center gap-1.5">
+        <mat-icon class="text-xs text-indigo-600">rate_review</mat-icon>
+        <span>سەرنج و تێبینییەکانی سەرپەرشتیار ({{ project.comments.length }})</span>
+      </h4>
+
+      <!-- New Comment Input -->
+      <div class="flex flex-col gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+        <textarea [(ngModel)]="newCommentText"
+          rows="2"
+          class="w-full bg-white text-xs p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-sans"
+          placeholder="سەرنج یان ڕێنمایی ئەکادیمی بنووسە..."></textarea>
+        
+        <div class="flex items-center justify-between">
+          <select [(ngModel)]="authorRole"
+            class="text-[10px] font-bold bg-white border border-slate-200 rounded-md px-2 py-1">
+            <option value="supervisor">سەرپەرشتیار (Supervisor)</option>
+            <option value="reviewer">هەڵسەنگێنەر (Reviewer)</option>
+            <option value="student">توێژەر / خوێندکار (Student)</option>
+          </select>
+
+          <button (click)="submitComment()"
+            [disabled]="!newCommentText.trim()"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg transition-all disabled:opacity-40 cursor-pointer">
+            تۆمارکردن
+          </button>
+        </div>
+      </div>
+
+      <!-- Existing Comments List -->
+      <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
+        @for (comment of project.comments; track comment.id) {
+          <div class="p-2.5 rounded-xl border border-slate-150 bg-white flex flex-col gap-1">
+            <div class="flex items-center justify-between text-[10px]">
+              <span class="font-bold text-slate-700">{{ comment.authorName }} ({{ comment.authorRole }})</span>
+              <span class="text-slate-400">{{ comment.createdAt | date:'shortTime' }}</span>
+            </div>
+            <p class="text-xs text-slate-800 leading-relaxed">{{ comment.commentText }}</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Project Version Snapshots -->
+    <div class="flex flex-col gap-2.5 pt-2 border-t border-slate-150">
+      <div class="flex items-center justify-between">
+        <h4 class="text-xs font-black text-slate-700 flex items-center gap-1.5">
+          <mat-icon class="text-xs text-indigo-600">history</mat-icon>
+          <span>وەشانەکانی پڕۆژە ({{ project.versions.length }})</span>
+        </h4>
+        <button (click)="createSnapshot()"
+          class="text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 px-2 py-0.5 rounded cursor-pointer">
+          + وەشانی نوێ
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
+        @for (ver of project.versions; track ver.versionNumber) {
+          <div class="p-2 rounded-lg bg-slate-50 border border-slate-150 text-xs flex items-center justify-between">
+            <div>
+              <span class="font-bold text-slate-800">وەشانی {{ ver.versionNumber }}: {{ ver.versionLabel }}</span>
+              <p class="text-[10px] text-slate-500 mt-0.5">{{ ver.summaryOfChanges }}</p>
+            </div>
+            <span class="text-[9px] text-slate-400">{{ ver.timestamp | date:'shortDate' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+  } @else {
+    <p class="text-xs text-slate-500 text-center py-4">هیچ پڕۆژەیەکی چالاک هەڵنەبژێردراوە.</p>
+  }
+
+</div>

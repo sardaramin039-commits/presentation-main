@@ -1,0 +1,73 @@
+﻿<div class="min-h-screen bg-slate-50 flex flex-col font-kurdish" dir="rtl">
+  
+  <!-- لیستی سەرەوە -->
+  <app-header-toolbar></app-header-toolbar>
+
+  <!-- ناوەڕۆکی سەرەکی -->
+  <main class="flex-grow container mx-auto px-4 py-8 flex gap-6 items-start">
+    
+    <!-- بەشی ڕاست: کۆنتڕۆڵ و فۆڕم -->
+    <aside class="w-1/4 bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-8">
+      <h2 class="text-lg font-bold text-slate-800 mb-6 border-b border-slate-100 pb-3">ڕێکخستنی توێژینەوە</h2>
+      
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">ناونیشانی بابەتەکە</label>
+          <textarea #topicInput rows="4" class="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-800 resize-none text-sm leading-relaxed" placeholder="بۆ نموونە: شیکردنەوەی مۆرفۆلۆژی لە شێوەزاری سۆرانیدا..."></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">ئاستی ئەکادیمی</label>
+          <select #levelInput class="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none bg-white text-slate-800 text-sm cursor-pointer">
+            <option value="bachelor">بەکالۆریۆس</option>
+            <option value="master">ماستەر (توێژینەوەی باڵا)</option>
+            <option value="phd">دکتۆرا (PhD)</option>
+          </select>
+        </div>
+
+        <!-- پەیامی هەڵە ئەگەر هەبێت -->
+        <div *ngIf="errorMessage" class="text-red-600 text-xs bg-red-50 p-2 rounded border border-red-100">
+          {{ errorMessage }}
+        </div>
+
+        <button 
+          (click)="generatePresentation(topicInput.value, levelInput.value)" 
+          [disabled]="isLoading"
+          [class.opacity-70]="isLoading"
+          [class.cursor-not-allowed]="isLoading"
+          class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-lg shadow-md transition-all flex justify-center items-center gap-2 mt-6">
+          
+          <!-- ئەگەر لۆدینگ بوو، ئایکۆنی سووڕاوە پیشان بدە -->
+          <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          
+          <!-- ئەگەر ئاسایی بوو، ئایکۆنی دروستکردن پیشان بدە -->
+          <svg *ngIf="!isLoading" class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          
+          {{ isLoading ? 'پڕۆسێس دەکرێت...' : 'دروستکردنی پرێزێنتەیشن' }}
+        </button>
+      </div>
+    </aside>
+
+    <!-- بەشی چەپ: شاشەی پیشاندانی سلاید (Canvas) -->
+    <section class="w-3/4 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative min-h-[500px]">
+      
+      <!-- ناردنی داتاکە بۆ کۆمپۆنێنتی سلایدەکە -->
+      <app-slide-canvas 
+        *ngIf="!isLoading" 
+        [presentationData]="presentationData" 
+        class="w-full h-full">
+      </app-slide-canvas>
+      
+      <!-- شاشەی چاوەڕوانی (لۆدینگ) بۆ بەشی چەپ -->
+      <div *ngIf="isLoading" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10">
+        <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <p class="text-slate-600 font-medium animate-pulse">خەریکی توێژینەوە و کۆکردنەوەی زانیارییە ئەکادیمییەکانە...</p>
+      </div>
+
+    </section>
+
+  </main>
+</div>

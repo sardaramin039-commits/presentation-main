@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile and personal settings",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": ["userId"]
+    },
+    "Workspace": {
+      "title": "Project Workspace",
+      "description": "Collaborative project workspace and metadata",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": ["title", "ownerId", "createdAt"]
+    },
+    "Presentation": {
+      "title": "Presentation Deck",
+      "description": "A generated Kurdish presentation including slides and options",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "academicLevel": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "slides": {
+          "type": "array"
+        }
+      },
+      "required": ["title", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile collection"
+    },
+    "/workspaces/{workspaceId}": {
+      "schema": "Workspace",
+      "description": "Workspaces and collaborative project collections"
+    },
+    "/presentations/{presentationId}": {
+      "schema": "Presentation",
+      "description": "User-created presentation slide decks"
+    }
+  }
+}

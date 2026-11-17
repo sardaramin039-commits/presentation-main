@@ -1,0 +1,122 @@
+<div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm flex flex-col gap-5 font-sans">
+  
+  <!-- Panel Header -->
+  <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+    <div class="flex items-center gap-2">
+      <div class="bg-emerald-50 p-2 rounded-xl text-emerald-700">
+        <mat-icon class="text-base">menu_book</mat-icon>
+      </div>
+      <div>
+        <h3 class="text-sm font-black text-slate-800">سەرچاوە و بەڵگەنامە زانستییەکان</h3>
+        <p class="text-[11px] text-slate-500">بەڕێوەبردنی سەرچاوەی ئەکادیمی، کتێب و گۆڤاری توێژینەوە</p>
+      </div>
+    </div>
+
+    <button (click)="toggleAddSource()"
+      class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl transition-all flex items-center gap-1 cursor-pointer shadow-sm">
+      <mat-icon class="text-xs">add</mat-icon>
+      <span>سەرچاوەی نوێ</span>
+    </button>
+  </div>
+
+  <!-- Add New Source Form Drawer -->
+  @if (isAddingSource()) {
+    <div class="bg-emerald-50/80 p-4 rounded-xl border border-emerald-200 flex flex-col gap-2.5 animate-fade-in">
+      <h4 class="text-xs font-black text-emerald-900">زیادکردنی سەرچاوەی ئەکادیمی نوێ:</h4>
+      
+      <input [(ngModel)]="sourceTitle"
+        placeholder="ناونیشانی توێژینەوە / کتێب..."
+        class="bg-white text-xs p-2 rounded-lg border border-emerald-300 focus:outline-none font-sans">
+
+      <div class="grid grid-cols-2 gap-2">
+        <input [(ngModel)]="sourceAuthors"
+          placeholder="نووسەران (نم: ئەحمەد، ڕێبین)..."
+          class="bg-white text-xs p-2 rounded-lg border border-emerald-300 focus:outline-none font-sans">
+        <input [(ngModel)]="sourceYear"
+          type="number"
+          placeholder="ساڵ (نم: 2024)..."
+          class="bg-white text-xs p-2 rounded-lg border border-emerald-300 focus:outline-none font-sans">
+      </div>
+
+      <input [(ngModel)]="sourceDoi"
+        placeholder="DOI یان بەستەری ئەکادیمی..."
+        class="bg-white text-xs p-2 rounded-lg border border-emerald-300 focus:outline-none font-sans">
+
+      <div class="flex items-center justify-end gap-2 mt-1">
+        <button (click)="isAddingSource.set(false)"
+          class="text-xs font-bold text-slate-600 px-3 py-1 hover:bg-slate-200/60 rounded-lg cursor-pointer">
+          پاشگەزبوونەوە
+        </button>
+        <button (click)="addSource()"
+          [disabled]="!sourceTitle.trim()"
+          class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1 rounded-lg disabled:opacity-40 cursor-pointer">
+          پاشەکەوتکردن
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Sources List -->
+  @if (workspaceService.activeProject(); as project) {
+    <div class="flex flex-col gap-2.5">
+      <div class="flex items-center justify-between">
+        <h4 class="text-xs font-black text-slate-700 flex items-center gap-1.5">
+          <mat-icon class="text-xs text-emerald-600">library_books</mat-icon>
+          <span>سەرچاوە تۆمارکراوەکان ({{ project.sources.length }})</span>
+        </h4>
+        <span class="text-[10px] text-slate-400">ستایلی APA 7th & IEEE</span>
+      </div>
+
+      <div class="flex flex-col gap-2 max-h-56 overflow-y-auto">
+        @for (src of project.sources; track src.id) {
+          <div class="p-3 rounded-xl border border-slate-150 bg-slate-50/70 hover:bg-slate-50 transition-all flex flex-col gap-1">
+            <div class="flex items-start justify-between gap-2">
+              <h5 class="text-xs font-bold text-slate-900 leading-snug">{{ src.metadata.title }}</h5>
+              <span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
+                {{ src.verificationResult?.status === 'verified' ? 'سەلمێنراو ✓' : 'پشکنراو' }}
+              </span>
+            </div>
+
+            <div class="text-[11px] text-slate-500 flex items-center gap-2">
+              <span>{{ src.metadata.authors.join('، ') }} ({{ src.metadata.publicationYear || 2024 }})</span>
+              @if (src.metadata.doi) {
+                <span class="text-indigo-600 truncate max-w-[120px]">{{ src.metadata.doi }}</span>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            هیچ سەرچاوەیەکی دەرەکی تۆمار نەکراوە. دەتوانیت سەرچاوەی ئەکادیمی نوێ زیاد بکەیت.
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Claims & Evidence Grounding -->
+    <div class="flex flex-col gap-2.5 pt-2 border-t border-slate-150">
+      <h4 class="text-xs font-black text-slate-700 flex items-center gap-1.5">
+        <mat-icon class="text-xs text-indigo-600">fact_check</mat-icon>
+        <span>داواکارییە زانستییەکان و بەڵگەکان ({{ project.claims.length }})</span>
+      </h4>
+
+      <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
+        @for (claim of project.claims; track claim.id) {
+          <div class="p-2.5 rounded-xl border border-slate-150 bg-white flex flex-col gap-1">
+            <div class="flex items-center justify-between text-[10px]">
+              <span class="font-bold text-slate-800">{{ claim.statement }}</span>
+              <span [class]="getClaimStatusClass(claim.status)" class="px-1.5 py-0.2 rounded font-black text-[9px]">
+                {{ getClaimStatusLabel(claim.status) }}
+              </span>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-[11px] text-slate-400 text-center py-2">هەموو خاڵەکانی سلایدەکان بەپێی بەڵگەی زانستی ڕێکخراون.</p>
+        }
+      </div>
+    </div>
+
+  } @else {
+    <p class="text-xs text-slate-500 text-center py-4">پڕۆژەیەک دەستنیشان نەکراوە.</p>
+  }
+
+</div>

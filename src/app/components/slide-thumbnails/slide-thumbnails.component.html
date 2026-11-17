@@ -1,0 +1,91 @@
+<aside class="h-full w-full p-2.5 lg:p-3 flex flex-col gap-2 font-sans bg-slate-950/70 backdrop-blur-md">
+  <!-- Thumbnails Header -->
+  <div class="flex items-center justify-between px-1 border-b border-slate-800 pb-2">
+    <div class="flex items-center gap-1.5 text-xs font-black text-slate-200">
+      <mat-icon class="text-sm text-indigo-400">view_sidebar</mat-icon>
+      <span>ڕیزبەندی سلایدەکان ({{ presentationService.totalSlidesCount() }})</span>
+    </div>
+    <button type="button" (click)="presentationService.addSlide()"
+      class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm"
+      title="زیادکردنی سلایدی نوێ">
+      <mat-icon class="text-xs">add</mat-icon>
+      <span>نوێ</span>
+    </button>
+  </div>
+
+  <!-- Thumbnails List: Horizontal Carousel on mobile (<lg), Vertical List on desktop (lg:) -->
+  <div class="flex flex-row lg:flex-col gap-2.5 flex-1 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto py-1 pr-1 scrollbar-thin">
+    @for (slide of presentationService.slides(); track slide.title + $index; let idx = $index) {
+      <div role="button" tabindex="0"
+        (click)="presentationService.setActiveSlide(idx)"
+        (keydown.enter)="presentationService.setActiveSlide(idx)"
+        (keydown.space)="presentationService.setActiveSlide(idx)"
+        [class]="presentationService.activeSlideIndex() === idx
+          ? 'ring-2 ring-indigo-500 bg-indigo-950/70 border-indigo-500/80 shadow-md scale-[1.01]'
+          : 'hover:bg-slate-850 border-slate-800/80 bg-slate-900/90 hover:border-slate-700'"
+        class="min-w-[150px] max-w-[190px] lg:min-w-0 lg:max-w-none p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between shrink-0 lg:shrink gap-1.5 group relative text-right">
+        
+        <!-- Slide Top Meta -->
+        <div class="flex items-center justify-between">
+          <span [class]="presentationService.activeSlideIndex() === idx ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-800 text-slate-300'"
+            class="text-[10px] font-black h-5 w-5 rounded-md flex items-center justify-center shrink-0">
+            {{ idx + 1 }}
+          </span>
+
+          <!-- Action icons -->
+          <div class="flex items-center gap-0.5 opacity-80 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+            @if (idx > 0) {
+              <button type="button" (click)="$event.stopPropagation(); presentationService.moveSlide(idx, idx - 1)"
+                class="p-0.5 hover:bg-slate-800 text-slate-300 rounded cursor-pointer"
+                title="بەرەو سەرەوە">
+                <mat-icon class="text-[14px]">arrow_upward</mat-icon>
+              </button>
+            }
+            @if (idx < presentationService.totalSlidesCount() - 1) {
+              <button type="button" (click)="$event.stopPropagation(); presentationService.moveSlide(idx, idx + 1)"
+                class="p-0.5 hover:bg-slate-800 text-slate-300 rounded cursor-pointer"
+                title="بەرەو خوارەوە">
+                <mat-icon class="text-[14px]">arrow_downward</mat-icon>
+              </button>
+            }
+            @if (presentationService.totalSlidesCount() > 1) {
+              <button type="button" (click)="$event.stopPropagation(); presentationService.deleteSlide(idx)"
+                class="p-0.5 hover:bg-red-950/80 text-red-400 rounded cursor-pointer"
+                title="سڕینەوەی سلاید">
+                <mat-icon class="text-[14px]">delete</mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Slide Thumbnail Content Preview -->
+        <div class="text-right">
+          <h4 class="text-xs font-bold text-slate-100 line-clamp-1" [title]="slide.title">
+            {{ slide.title || 'سلایدی بێ ناونیشان' }}
+          </h4>
+          <p class="text-[10px] text-slate-400 mt-0.5 truncate">
+            {{ slide.points.length }} خاڵ • {{ slide.visualSuggestion ? 'بینراو' : 'دەق' }}
+          </p>
+        </div>
+
+        <!-- Mini Indicators -->
+        <div class="flex items-center justify-between text-[9px] text-slate-500 pt-1 border-t border-white/5">
+          @if (slide.sources && slide.sources.length > 0) {
+            <span class="flex items-center gap-0.5 bg-emerald-950/60 text-emerald-300 px-1 py-0.2 rounded border border-emerald-800/40">
+              <mat-icon class="text-[10px]">auto_stories</mat-icon>
+              <span>{{ slide.sources.length }} سەرچاوە</span>
+            </span>
+          } @else {
+            <span class="text-[9px] text-slate-600">ئاسۆ ستۆدیۆ</span>
+          }
+          @if (slide.speakerNotes) {
+            <span class="flex items-center gap-0.5 text-indigo-400" title="تێبینی پێشکەشکار هەیە">
+              <mat-icon class="text-[10px]">mic</mat-icon>
+            </span>
+          }
+        </div>
+
+      </div>
+    }
+  </div>
+</aside>
